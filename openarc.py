@@ -1,25 +1,52 @@
 from prompt_toolkit import HTML, print_formatted_text, prompt
-from src.core.handler.get_input_handler import get_input_handler
+from src.llm.llm_provider_registry import LLMProviderRegistry
+from src.config.config import ConfigService
+from src.core.handlers.arc_command_handler import ArcCommandHandler
+from src.core.handlers.arc_query_handler import ArcQueryHandler
+from src.core.handlers.main_input_handler import MainInputHandler
+from src.core.handlers.shell_command_handler import ShellCommandHandler
+from src.core.ui.config_menu_ui import ConfigMenuUI
 from src.core.router.router import InputRouter
+from src.utils.print_style import print_with_frame
+from src.utils.prompt import prompt_session
 
 
-def loop():
+def main_loop():
+    main_input_handler = MainInputHandler(
+        shell_command_handler=ShellCommandHandler(),
+        arc_command_handler=ArcCommandHandler(
+            config_menu_ui_handler=ConfigMenuUI(),
+            llm_provider_registry=LLMProviderRegistry(config_service=ConfigService()),
+        ),
+        arc_query_handler=ArcQueryHandler(),
+    )
+
     while True:
-        user_input = prompt(">>> ", complete_while_typing=True)
-        if user_input.strip().lower() in ["exit"]:
+        try:
+            user_input = prompt_session.prompt(HTML("<skyblue>>> </skyblue>"))
+
+            if user_input.strip().lower() in ["exit"]:
+                exit(0)
+
+            input_type = InputRouter().route_input(user_input)
+            # print_formatted_text(HTML(f"<grey>Input Type: {input_type.input_type}, Content: {input_type.content}</grey>"))
+
+            result = main_input_handler.handle(
+                input_type.input_type, input_type.content
+            )
+
+            if result.stderr:
+                print_formatted_text(HTML(f"<ansired>{result.stderr}</ansired>"))
+            elif result.stdout:
+                print_with_frame(result.stdout)
+        except KeyboardInterrupt as e:
+            print_formatted_text(
+                HTML("<ansired>KeyboardInterrupt detected. Exiting...</ansired>")
+            )
             exit(0)
-        input_type = InputRouter().route_input(user_input)
-        print_formatted_text(HTML(f"<grey>Input Type: {input_type.input_type}, Content: {input_type.content}</grey>"))
-
-        handler = get_input_handler(input_type.input_type)
-        result = handler.handle(input_type.content)
-
-        print_formatted_text(result.stdout)
-
-
-def main():
-    loop()
+        except Exception as e:
+            print_formatted_text(HTML(f"<ansired>Error: {str(e)}</ansired>"))
 
 
 if __name__ == "__main__":
-    main()
+    main_loop()
