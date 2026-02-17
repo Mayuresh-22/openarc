@@ -208,3 +208,8 @@ __marimo__/
 
 # Memory, databases
 *.db
+
+
+# Configuration files
+*config.yaml
+*config.json
