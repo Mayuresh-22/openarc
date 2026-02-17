@@ -1,11 +1,14 @@
-from prompt_toolkit import HTML, choice, prompt
+from typing import Optional
+from prompt_toolkit import HTML, choice, print_formatted_text, prompt
 from prompt_toolkit.filters import is_done
 from src.config.llm import SUPPORTED_MODEL_PROVIDERS
+from src.types.config import AvailableLLMProvider, SupportedLLMProvider
+from src.utils.prompt import prompt_session
 
 
 class ConfigMenuUI:
     def __init__(self) -> None:
-        self.supported_models = [
+        self.supported_llm_providers: list[tuple[int, str]] = [
             (i, model.name) for i, model in enumerate(SUPPORTED_MODEL_PROVIDERS)
         ]
 
@@ -14,33 +17,68 @@ class ConfigMenuUI:
             message="Select a configuration option:",
             options=[
                 ("1", "Add LLM Provider"),
-                ("2", "Switch LLM Provider"),
+                ("2", "Switch LLM Provider/LLM Model"),
                 ("3", "Back to Main Menu"),
             ],
-            show_frame=~is_done,
+            show_frame=~is_done,  # type: ignore
+            symbol="*",
             bottom_toolbar=HTML(
                 " Press <b>[Up]</b>/<b>[Down]</b> to select, <b>[Enter]</b> to accept."
             ),
         )
         return menu_choice
 
-    def handle_add_llm_provider(self):
-        model_choice = choice(
+    def handle_add_llm_provider(
+        self,
+    ) -> tuple[Optional[SupportedLLMProvider], Optional[str], Optional[str]]:
+        option_choice = choice(
             message="Enter LLM provider details:",
-            options=self.supported_models + [("x", "Cancel")],
-            show_frame=~is_done,
+            options=self.supported_llm_providers + [("x", "Cancel")],
+            show_frame=~is_done,  # type: ignore
         )
-
         print()
-        if model_choice == "x":
+
+        if option_choice == "x":
             return None, None, None
 
-        _api_key = prompt(
+        api_key = prompt(
             HTML("Enter API key for the selected provider: "),
             placeholder="sk-aQasd...",
             is_password=True,
+            accept_default=False,
         )
-        _model_id = prompt(
-            HTML("Enter model ID to use (e.g. gpt-4): "), placeholder="gpt-4"
+
+        model_id = prompt(
+            HTML("Enter model ID to use (e.g. gpt-4): "),
+            placeholder="gpt-4",
+            accept_default=False,
         )
-        return model_choice, _api_key, _model_id
+        return SUPPORTED_MODEL_PROVIDERS[option_choice], api_key, model_id
+
+    def handle_switch_llm_provider(
+        self, available_providers: list[AvailableLLMProvider]
+    ) -> Optional[AvailableLLMProvider]:
+        available_model_options = [
+            (i, f"{provider.provider_name} ({provider.model_id})")
+            for i, provider in enumerate(available_providers)
+        ]
+
+        if not available_model_options:
+            print_formatted_text(
+                HTML(
+                    "<ansired>No available LLM providers to switch to. Please add a provider first.</ansired>"
+                )
+            )
+            return None
+
+        provider_choice = choice(
+            message="Select LLM provider to switch to:",
+            options=available_model_options + [("x", "Cancel")],
+            show_frame=~is_done,  # type: ignore
+        )
+        print()
+
+        if provider_choice == "x":
+            return None
+
+        return available_providers[provider_choice]
