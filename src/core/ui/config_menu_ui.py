@@ -1,7 +1,9 @@
 from typing import Optional
 from prompt_toolkit import HTML, choice, print_formatted_text, prompt
 from prompt_toolkit.filters import is_done
-from src.config.llm import SUPPORTED_MODEL_PROVIDERS
+from src.core.prompts.prompt import PromptService
+from src.const.config import CONFIG_MENU_VAL_LABEL_MAP
+from src.const.llm import SUPPORTED_MODEL_PROVIDERS
 from src.types.config import AvailableLLMProvider, SupportedLLMProvider
 from src.utils.prompt import prompt_session
 
@@ -15,13 +17,8 @@ class ConfigMenuUI:
     def display_config_menu(self):
         menu_choice = choice(
             message="Select a configuration option:",
-            options=[
-                ("1", "Add LLM Provider"),
-                ("2", "Switch LLM Provider/LLM Model"),
-                ("3", "Back to Main Menu"),
-            ],
+            options=[(key, value) for key, value in CONFIG_MENU_VAL_LABEL_MAP.items()],
             show_frame=~is_done,  # type: ignore
-            symbol="*",
             bottom_toolbar=HTML(
                 " Press <b>[Up]</b>/<b>[Down]</b> to select, <b>[Enter]</b> to accept."
             ),
@@ -82,3 +79,15 @@ class ConfigMenuUI:
             return None
 
         return available_providers[provider_choice]
+
+    def handle_mod_sys_prompt(self, current_sys_prompt: str = "") -> str:
+        new_sys_prompt = prompt(
+            HTML("Enter new system prompt: "),
+            default=current_sys_prompt
+        )
+        if not new_sys_prompt.lstrip():
+            print_formatted_text(
+                HTML("<ansired>System prompt cannot be empty. Keeping the existing prompt.</ansired>")
+            )
+            return current_sys_prompt
+        return new_sys_prompt
