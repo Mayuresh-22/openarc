@@ -1,9 +1,11 @@
 import os
+import json
 from os.path import dirname as up
 
 from src.types.config import ConfigFileType
 
 
+ROOT_PATH = up(up(up(__file__)))
 CONFIG_PATH = os.path.join(up(up(up(__file__))), ".openarc/config.json")
 
 if not os.path.exists(CONFIG_PATH):
@@ -14,15 +16,11 @@ if not os.path.exists(CONFIG_PATH):
 
 class ConfigService:
     def load_config(self) -> ConfigFileType:
-        import json
-
         with open(CONFIG_PATH, "r") as f:
             self.config_file = ConfigFileType(**json.load(f))
         return self.config_file
 
     def save_config(self):
-        import json
-
         with open(CONFIG_PATH, "w") as f:
             json.dump(self.config_file.model_dump(), f, indent=4)
 
