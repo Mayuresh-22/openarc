@@ -1,4 +1,5 @@
 from prompt_toolkit import HTML, print_formatted_text, prompt
+from src.core.prompts.prompt import PromptService
 from src.llm.llm_provider_registry import LLMProviderRegistry
 from src.config.config import ConfigService
 from src.core.handlers.arc_command_handler import ArcCommandHandler
@@ -17,6 +18,7 @@ def main_loop():
         arc_command_handler=ArcCommandHandler(
             config_menu_ui_handler=ConfigMenuUI(),
             llm_provider_registry=LLMProviderRegistry(config_service=ConfigService()),
+            prompt_service=PromptService()
         ),
         arc_query_handler=ArcQueryHandler(),
     )
