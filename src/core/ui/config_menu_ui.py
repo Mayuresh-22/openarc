@@ -91,3 +91,28 @@ class ConfigMenuUI:
             )
             return current_sys_prompt
         return new_sys_prompt
+
+
+    def handle_mod_user_prompt(self, current_user_prompt: str = "") -> str:
+        new_user_prompt = prompt(
+            HTML("Enter new user prompt: "),
+            default=current_user_prompt
+        )
+        if not new_user_prompt.lstrip():
+            print_formatted_text(
+                HTML("<ansired>User prompt cannot be empty. Keeping the existing prompt.</ansired>")
+            )
+            return current_user_prompt
+        return new_user_prompt
+
+    def handle_mod_tool_prompt(self, current_tool_prompt: str = "") -> str:
+        new_tool_prompt = prompt(
+            HTML("Enter new tool prompt: "),
+            default=current_tool_prompt
+        )
+        if not new_tool_prompt.lstrip():
+            print_formatted_text(
+                HTML("<ansired>Tool prompt cannot be empty. Keeping the existing prompt.</ansired>")
+            )
+            return current_tool_prompt
+        return new_tool_prompt

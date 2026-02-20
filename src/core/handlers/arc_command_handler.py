@@ -107,6 +107,30 @@ class ArcCommandHandler(BaseHandler):
                     exitcode=0,
                 )
             
+            case ConfigMenuOptionsValue.OPTION_MOD_USER_PROMPT.value:
+                new_user_prompt = self.config_menu_ui_handler.handle_mod_user_prompt(
+                    current_user_prompt=self.prompt_service.get_user_prompt()
+                )
+                self.prompt_service.set_user_prompt(new_user_prompt)
+
+                return CLIOutput(
+                    stdout="User prompt updated successfully.",
+                    stderr=None,
+                    exitcode=0,
+                )
+            
+            case ConfigMenuOptionsValue.OPTION_MOD_TOOL_PROMPT.value:
+                new_tool_prompt = self.config_menu_ui_handler.handle_mod_tool_prompt(
+                    current_tool_prompt=self.prompt_service.get_tool_prompt()
+                )
+                self.prompt_service.set_tool_prompt(new_tool_prompt)
+
+                return CLIOutput(
+                    stdout="Tool prompt updated successfully.",
+                    stderr=None,
+                    exitcode=0,
+                )
+            
             case ConfigMenuOptionsValue.OPTION_CANCEL.value:
                 return CLIOutput(
                     stdout="Returning to Main Menu.", stderr=None, exitcode=0
