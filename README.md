@@ -1,2 +1,2 @@
-# openarc
-Open source AI CLI dev tool that understands your natural language queries and executes complex tasks.
+# OpenArc
+A developer focused CLI that plans, executes, and verifies multi-step tasks from natural language.
