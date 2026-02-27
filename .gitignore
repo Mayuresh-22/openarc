@@ -209,6 +209,9 @@ __marimo__/
 # Memory, databases
 *.db
 
+# Prompt/Internal files
+*prompt_files
+*internal_docs
 
 # Configuration files
 *config.yaml
