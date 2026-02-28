@@ -17,6 +17,6 @@ for key, path in ALL_PROMPT_FILES.items():
     full_path = os.path.join(BASE_PROMPT_FILE_PATH, path)
     ensure_file_exists(full_path)
     prompt_paths[key] = full_path
-    
+
 
 ALL_PROMPTS_FILE_PATH: AllPromptsFilePath = AllPromptsFilePath(**prompt_paths)
