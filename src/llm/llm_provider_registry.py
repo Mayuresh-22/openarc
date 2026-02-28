@@ -1,14 +1,23 @@
-from typing import Optional
+from src.core.agents.agent_config_service import AgentConfigService
 from src.config.config import ConfigService
 from src.types.config import AvailableLLMProvider, SupportedLLMProvider
 
 
 class LLMProviderRegistry:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs) -> "LLMProviderRegistry":
+        if cls._instance is None:
+            cls._instance = super(LLMProviderRegistry, cls).__new__(cls)
+        return cls._instance
+
     def __init__(self, config_service: ConfigService):
         self.config_service = config_service
-        self.current_llm_provider = self.config_service.load_config().current_llm_provider
 
     def is_provider_registered(self, code_name: str, model_id: str) -> bool:
+        """
+        Checks if a provider with the given code_name and model_id is registered in the loaded configuration. Returns True if found, otherwise False.
+        """
         for (
             provider_code_name,
             provider_model_id,
@@ -18,6 +27,9 @@ class LLMProviderRegistry:
         return False
 
     def register_llm_provider(self, llm_provider: AvailableLLMProvider):
+        """
+        Registers a new LLM provider in the configuration.
+        """
         temp_config_file = self.config_service.load_config()
 
         temp_config_file.available_llm_providers.append(
@@ -34,27 +46,10 @@ class LLMProviderRegistry:
 
         self.config_service.save_config()
 
-        if not temp_config_file.current_llm_provider:
-            self.set_current_llm_provider(llm_provider)
-
-    def set_current_llm_provider(self, llm_provider: AvailableLLMProvider):
-        temp_config_file = self.config_service.load_config()
-
-        self.current_llm_provider = AvailableLLMProvider(
-            provider_name=llm_provider.provider_name,  # type: ignore
-            code_name=llm_provider.code_name,  # type: ignore
-            model_id=llm_provider.model_id,  # type: ignore
-            api_key=llm_provider.api_key,  # type: ignore
-        )
-        temp_config_file.current_llm_provider = self.current_llm_provider
-
-        self.config_service.save_config()
-
-    def get_current_llm_provider(self) -> Optional[AvailableLLMProvider]:
-        return self.current_llm_provider
-
     def get_supported_llm_providers(self) -> list[SupportedLLMProvider]:
+        """Returns a list of supported LLM providers from the configuration."""
         return self.config_service.load_config().supported_llm_providers
 
     def get_available_llm_providers(self) -> list[AvailableLLMProvider]:
+        """Returns a list of available LLM providers from the configuration."""
         return self.config_service.load_config().available_llm_providers
