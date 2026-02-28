@@ -1,4 +1,7 @@
 from prompt_toolkit import HTML, print_formatted_text, prompt
+from prompt_toolkit.styles import Style
+from src.core.agents.agent_config_service import AgentConfigService
+from src.core.agents.planner.agent import planner_agent
 from src.core.prompts.prompt import PromptService
 from src.llm.llm_provider_registry import LLMProviderRegistry
 from src.config.config import ConfigService
@@ -18,14 +21,19 @@ def main_loop():
         arc_command_handler=ArcCommandHandler(
             config_menu_ui_handler=ConfigMenuUI(),
             llm_provider_registry=LLMProviderRegistry(config_service=ConfigService()),
+            agent_config_service=AgentConfigService(config_service=ConfigService()),
             prompt_service=PromptService()
         ),
         arc_query_handler=ArcQueryHandler(),
     )
 
+    # print(planner_agent.run("create readme.md file for existing project", stream=False).content)
+
     while True:
         try:
-            user_input = prompt_session.prompt(HTML("<skyblue>>> </skyblue>"))
+            user_input = prompt_session.prompt(
+                HTML("<skyblue>>> </skyblue>")
+            )
 
             if user_input.strip().lower() in ["exit"]:
                 exit(0)

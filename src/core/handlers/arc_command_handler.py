@@ -1,5 +1,7 @@
 from typing import Callable
 
+from src.const.agents import SUPPORTED_AGENTS
+from src.core.agents.agent_config_service import AgentConfigService
 from src.core.prompts.prompt import PromptService
 from src.const.config import ConfigMenuOptionsValue
 from src.llm.llm_provider_registry import LLMProviderRegistry
@@ -10,11 +12,19 @@ from src.types.config import AvailableLLMProvider
 
 
 class ArcCommandHandler(BaseHandler):
+    _instance = None
+
+    def __new__(cls, *args, **kwargs) -> "ArcCommandHandler":
+        if cls._instance is None:
+            cls._instance = super(ArcCommandHandler, cls).__new__(cls)
+        return cls._instance
+
     def __init__(
         self,
         config_menu_ui_handler: ConfigMenuUI,
         llm_provider_registry: LLMProviderRegistry,
-        prompt_service: PromptService
+        agent_config_service: AgentConfigService,
+        prompt_service: PromptService,
     ):
         super().__init__()
         self.valid_arc_commands_map: dict[str, Callable] = {
@@ -23,6 +33,7 @@ class ArcCommandHandler(BaseHandler):
         }
         self.config_menu_ui_handler = config_menu_ui_handler
         self.llm_provider_registry = llm_provider_registry
+        self.agent_config_service = agent_config_service
         self.prompt_service = prompt_service
 
     def handle(self, content: list[str]) -> CLIOutput:
@@ -69,6 +80,13 @@ class ArcCommandHandler(BaseHandler):
                 )
                 self.llm_provider_registry.register_llm_provider(new_provider)
 
+                # If this is the first provider being added, set it as the model for all agents by default
+                if len(self.llm_provider_registry.get_available_llm_providers()) == 1:
+                    for agents in SUPPORTED_AGENTS:
+                        self.agent_config_service.set_agent_model(
+                            agent_name=agents.value, llm_provider=new_provider
+                        )
+
                 return CLIOutput(
                     stdout=f"Added LLM provider: {llm_provider.name} with model ID {model_id}",  # type: ignore
                     stderr=None,
@@ -79,6 +97,7 @@ class ArcCommandHandler(BaseHandler):
                 llm_provider = self.config_menu_ui_handler.handle_switch_llm_provider(
                     self.llm_provider_registry.get_available_llm_providers()
                 )
+                selected_agents = self.config_menu_ui_handler.select_agents_for_switch()
 
                 if llm_provider is None:
                     return CLIOutput(
@@ -87,14 +106,15 @@ class ArcCommandHandler(BaseHandler):
                         exitcode=0,
                     )
 
-                self.llm_provider_registry.set_current_llm_provider(llm_provider)
+                for agent in selected_agents:
+                    self.agent_config_service.set_agent_model(agent, llm_provider)  # type: ignore
 
                 return CLIOutput(
-                    stdout=f"Switched LLM Provider to: {llm_provider.provider_name} ({llm_provider.model_id})",  # type: ignore
+                    stdout=f"LLM/provider switch completed.",
                     stderr=None,
                     exitcode=0,
                 )
-            
+
             case ConfigMenuOptionsValue.OPTION_MOD_SYS_PROMPT.value:
                 new_sys_prompt = self.config_menu_ui_handler.handle_mod_sys_prompt(
                     current_sys_prompt=self.prompt_service.get_sys_prompt()
@@ -106,7 +126,7 @@ class ArcCommandHandler(BaseHandler):
                     stderr=None,
                     exitcode=0,
                 )
-            
+
             case ConfigMenuOptionsValue.OPTION_MOD_USER_PROMPT.value:
                 new_user_prompt = self.config_menu_ui_handler.handle_mod_user_prompt(
                     current_user_prompt=self.prompt_service.get_user_prompt()
@@ -118,7 +138,7 @@ class ArcCommandHandler(BaseHandler):
                     stderr=None,
                     exitcode=0,
                 )
-            
+
             case ConfigMenuOptionsValue.OPTION_MOD_TOOL_PROMPT.value:
                 new_tool_prompt = self.config_menu_ui_handler.handle_mod_tool_prompt(
                     current_tool_prompt=self.prompt_service.get_tool_prompt()
@@ -130,7 +150,7 @@ class ArcCommandHandler(BaseHandler):
                     stderr=None,
                     exitcode=0,
                 )
-            
+
             case ConfigMenuOptionsValue.OPTION_CANCEL.value:
                 return CLIOutput(
                     stdout="Returning to Main Menu.", stderr=None, exitcode=0
