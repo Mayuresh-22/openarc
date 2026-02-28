@@ -3,18 +3,26 @@ import json
 from os.path import dirname as up
 
 from src.types.config import ConfigFileType
+from src.utils.file import ensure_file_exists
 
 
 ROOT_PATH = up(up(up(__file__)))
-CONFIG_PATH = os.path.join(up(up(up(__file__))), ".openarc/config.json")
+CONFIG_PATH = os.path.join(ROOT_PATH, ".openarc/config.json")
 
-if not os.path.exists(CONFIG_PATH):
-    os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
-    with open(CONFIG_PATH, "w") as f:
-        f.write("{}")
+# Ensure config file exists at startup
+ensure_file_exists(
+    CONFIG_PATH, default_content=ConfigFileType().model_dump_json(indent=4)
+)
 
 
 class ConfigService:
+    _instance = None
+
+    def __new__(cls) -> "ConfigService":
+        if cls._instance is None:
+            cls._instance = super(ConfigService, cls).__new__(cls)
+        return cls._instance
+
     def load_config(self) -> ConfigFileType:
         with open(CONFIG_PATH, "r") as f:
             self.config_file = ConfigFileType(**json.load(f))
