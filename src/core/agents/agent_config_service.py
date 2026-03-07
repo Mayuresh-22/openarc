@@ -5,9 +5,11 @@ from agno.models.openai import OpenAIResponses
 from agno.models.cerebras import Cerebras
 from agno.models.groq import Groq
 from agno.models.ollama import Ollama
+from prompt_toolkit import HTML, print_formatted_text
 
 from src.config.config import ConfigService
 from src.types.config import AgentConfig, AvailableLLMProvider
+from src.utils.print_style import cli_style
 
 
 class AgentConfigService:
@@ -51,8 +53,9 @@ class AgentConfigService:
         agent_name: Literal["planner", "executor", "verifier"],
         llm_provider: AvailableLLMProvider,
     ) -> None:
-        print(
-            f"Setting model for {agent_name.title()} Agent to {llm_provider.provider_name} ({llm_provider.model_id})..."
+        print_formatted_text(
+            HTML(f"<feedback-info>Setting model for {agent_name.title()} Agent to {llm_provider.provider_name} ({llm_provider.model_id})...</feedback-info>"),
+            style=cli_style
         )
         temp_config_file = self.config_service.load_config()
         temp_config_file.agents[agent_name].model = self.llm_provider_to_model(
