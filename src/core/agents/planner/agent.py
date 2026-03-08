@@ -6,6 +6,7 @@ from src.core.agents.agent_config_service import AgentConfigService
 from src.const.agents import ALL_AGENT_MEMORY_PATHS
 from src.types.agents import PlannerAgentOutputSchema
 from src.tools.registry import ToolRegistry
+from src.utils.agent import build_session_id
 
 
 class PlannerAgent:
@@ -23,11 +24,13 @@ class PlannerAgent:
         ):
         self.agent_config_service = agent_config_service
         self.tool_registry = tool_registry
+        self.session_id = build_session_id()
 
     def get_agent(self):
         self.agent_config = self.agent_config_service.get_agent_config("planner")
         self.planner_agent = Agent(
-            name=self.agent_config.name or "Planner Agent",
+            name="Planner Agent",
+            session_id=self.session_id,
             description=f"You are a OpenArc's planner agent. OpenArc is a dev focused CLI that plans, executes and verifies developer tasks from natural language. Extended description: <user_description>{self.agent_config.description}</user_description>",
             model=self.agent_config.model,
             instructions=[
@@ -41,7 +44,7 @@ class PlannerAgent:
                 "Break the task into the smallest logical steps needed to complete it.",
                 "Order the steps so that dependencies are respected.",
                 "Each step must contain:",
-                "1. step_name: a descriptive name (displayed in CLI, inc step number)",
+                "1. step_name: a descriptive name (displayed in CLI, Step 1: <step_name>, etc)",
                 "2. step_description: a brief actionable description",
                 "3. tools_required: exact toolkit names from the available toolkit list only",
                 "4. expected_output: the concrete outcome expected from the step",

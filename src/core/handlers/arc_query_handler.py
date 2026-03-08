@@ -6,6 +6,7 @@ from src.const.workflow import WORKFLOW_MEMORY_PATH
 from src.core.agents.planner.run import run_planner_agent
 from src.core.handlers.base_handler import BaseHandler
 from src.types.cli import CLIOutput
+from src.utils.agent import build_session_id
 
 
 class ArcQueryHandler(BaseHandler):
@@ -17,8 +18,10 @@ class ArcQueryHandler(BaseHandler):
         return cls._instance
     
     def __init__(self):
+        self.workflow_session_id = build_session_id()
         self.workflow = Workflow(
-            name="OpenArc CLI",
+            name="OpenArc AI Agent Mode",
+            session_id=self.workflow_session_id,
             db=SqliteDb(WORKFLOW_MEMORY_PATH),
             steps=[run_planner_agent]
         )
