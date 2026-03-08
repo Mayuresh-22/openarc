@@ -30,6 +30,7 @@ class ArcCommandHandler(BaseHandler):
         self.valid_arc_commands_map: dict[str, Callable] = {
             "config": self.config_command,
             "help": self.help_command,
+            "bye": self.bye_command,
         }
         self.config_menu_ui_handler = config_menu_ui_handler
         self.llm_provider_registry = llm_provider_registry
@@ -157,11 +158,16 @@ class ArcCommandHandler(BaseHandler):
                 )
 
         return CLIOutput(stdout=result, stderr=None, exitcode=0)
+    
+    def bye_command(self):
+        print("Exiting OpenArc. Goodbye!")
+        exit(0)
 
     def help_command(self) -> CLIOutput:
         help_text = (
             "Available commands:\n"
-            "  config - Configure the system settings.\n"
-            "  help - Show this help message."
+            "  /config - Configure the system settings.\n"
+            "  /help - Show this help message.\n"
+            "  /bye - Exit the OpenArc."
         )
         return CLIOutput(stdout=help_text, stderr=None, exitcode=0)
