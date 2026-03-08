@@ -55,7 +55,6 @@ class PlannerAgent:
             add_history_to_context=True,
             markdown=True,
             tool_call_limit=10,
-            tool_choice="least_tools",
             telemetry=False
         )
 
