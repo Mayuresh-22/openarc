@@ -8,6 +8,8 @@ cli_style = Style.from_dict({
     'output': '#FFFFFF',
     'output-bold': 'bold #FFFFFF',
     'progress': 'italic #FFD700',
+    'system': 'bold #7DD3FC',
+    'system-muted': '#94A3B8',
     'confirm': 'bold #E040FB',
     'error': 'bold #FF5252',
     'warning': 'bold #FF9800',
@@ -32,3 +34,17 @@ def print_with_frame(text, color="ansigreen", style=cli_style):
         print_formatted_text(FormattedText([("white", line.ljust(width))]), end="", style=style)
         print_formatted_text(FormattedText([(color, " │")]), style=style)
     print_formatted_text(FormattedText([(color, bottom)]), "\n", style=style)
+
+
+def print_system_message(text: str, style=cli_style):
+    print_formatted_text(FormattedText([("class:system", text)]), style=style)
+
+
+def print_system_detail(label: str, value: str, style=cli_style):
+    print_formatted_text(
+        FormattedText([
+            ("class:system", f"{label}: "),
+            ("class:system-muted", value),
+        ]),
+        style=style,
+    )

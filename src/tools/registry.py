@@ -6,6 +6,9 @@ It allows agents to access a centralized registry of tools that they can utilize
 
 
 from agno.agent import Toolkit
+from prompt_toolkit import HTML, print_formatted_text
+
+from src.utils.print_style import cli_style
 
 
 class ToolRegistry:
@@ -21,5 +24,8 @@ class ToolRegistry:
         self.toolkits.append(toolkit)
     
     def get_all_toolkits(self):
-        print(f"{len(self.toolkits)} toolkits registered in the ToolRegistry.")
+        print_formatted_text(
+            HTML(f"<system-muted>{len(self.toolkits)} toolkits loaded.</system-muted>"),
+            style=cli_style
+        )
         return self.toolkits
