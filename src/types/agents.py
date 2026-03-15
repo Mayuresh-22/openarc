@@ -15,4 +15,9 @@ class PlanStep(BaseModel):
 
 
 class PlannerAgentOutputSchema(BaseModel):
+    task: str
     plan: list[PlanStep]
+
+
+class ExecutorAgentOutputSchema(BaseModel):
+    execution_results: list[str]
