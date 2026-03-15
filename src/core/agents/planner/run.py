@@ -30,7 +30,7 @@ def run_planner_agent(step_input: StepInput) -> StepOutput:
     fin_content = ""
 
     print_formatted_text(
-        HTML("<header>Planner Agent Output:</header>"),
+        HTML("<header>\n===== Planner Agent Output: =====</header>"),
         style=cli_style
     )
     while True:
@@ -84,7 +84,6 @@ def run_planner_agent(step_input: StepInput) -> StepOutput:
                     stream=True,
                 )
                 break  # Re-enter while loop with new `run_response` object
-
             else:
                 try:
                     event_content = PlannerAgentOutputSchema.model_validate(run_event.content)  # type: ignore
@@ -115,15 +114,15 @@ def print_planner_agent_output(event_content: str | PlannerAgentOutputSchema):
     if isinstance(event_content, PlannerAgentOutputSchema):
         for step in event_content.plan:
             print_formatted_text(
-                HTML(f"<output-bold>{step.step_name}</output-bold>"),
+                HTML(f" <output-bold>{step.step_name}</output-bold>"),
                 style=cli_style
             )
             print_formatted_text(
-                HTML(f"<grey>  Description: {step.step_description}</grey>"),
+                HTML(f"   <grey>Description: {step.step_description}</grey>"),
                 style=cli_style
             )
             print_formatted_text(
-                HTML("<grey>  Tools Required: " + ", ".join(step.tools_required) + "</grey>"),
+                HTML(f"   <grey>Tools Required: " + ", ".join(step.tools_required) + "</grey>"),
                 style=cli_style
             )
             # print_formatted_text(
