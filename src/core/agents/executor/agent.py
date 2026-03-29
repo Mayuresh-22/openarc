@@ -7,7 +7,7 @@ from src.core.agents.agent_config_service import AgentConfigService
 from src.const.agents import ALL_AGENT_MEMORY_PATHS
 from src.types.agents import ExecutorAgentOutputSchema
 from src.tools.registry import ToolRegistry
-from src.utils.agent import build_session_id
+from src.utils.agent import build_environment_prompt, build_session_id
 
 
 class ExecutorAgent:
@@ -46,6 +46,7 @@ class ExecutorAgent:
                 "You are OpenArc's Executor Agent.",
                 "You receive a structured plan consisting of ordered steps, each with a step_name, step_description, tools_required, and expected_output.",
                 f"Available toolkits for execution:\n{available_toolkits_text}",
+                f"Environment information:\n{build_environment_prompt()}",
                 "You must only use toolkits from the list above. Do not invent, rename, or generalize toolkit names.",
                 "For each step:",
                 "- Carefully read the step_name and step_description to understand the task.",

@@ -6,7 +6,7 @@ from src.core.agents.agent_config_service import AgentConfigService
 from src.const.agents import ALL_AGENT_MEMORY_PATHS
 from src.types.agents import PlannerAgentOutputSchema
 from src.tools.registry import ToolRegistry
-from src.utils.agent import build_session_id
+from src.utils.agent import build_environment_prompt, build_session_id
 
 
 class PlannerAgent:
@@ -37,6 +37,7 @@ class PlannerAgent:
                 "You are OpenArc's Planner Agent.",
                 "Your role is to transform a natural-language developer request into a logical, execution-ready step-by-step plan.",
                 f"Available toolkits:\n{self.tool_registry.get_all_toolkits()}",
+                f"Environment information:\n{build_environment_prompt()}",
                 "You must analyze the available toolkits before creating the plan.",
                 "You must only reference toolkit names exactly as listed above.",
                 "Do not hallucinate, rename, or invent toolkit names.",
