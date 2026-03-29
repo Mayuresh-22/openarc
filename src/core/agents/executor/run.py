@@ -13,8 +13,6 @@ Why?
 Note: This is the workaround as agent tool level HITL is NOT propagated to the workflow in agno. 
 This implementation ensures workflow execution is paused until the agent receives the necessary user input.
 """
-import json
-
 from agno.workflow import StepInput, StepOutput
 from prompt_toolkit import HTML, print_formatted_text, prompt
 from pydantic import ValidationError
