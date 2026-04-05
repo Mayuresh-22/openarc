@@ -17,31 +17,29 @@ class ArcQueryHandler(BaseHandler):
         if cls._instance is None:
             cls._instance = super(ArcQueryHandler, cls).__new__(cls)
         return cls._instance
-    
+
     def __init__(self):
         self.workflow_session_id = build_session_id()
         self.workflow = Workflow(
             name="OpenArc AI Agent Mode",
             session_id=self.workflow_session_id,
             db=SqliteDb(WORKFLOW_MEMORY_PATH),
-            steps=[run_planner_agent, run_executor_agent]
+            steps=[run_planner_agent, run_executor_agent],
         )
 
     def handle(self, content: list[str]):
-        workflow_response = self.workflow.run(
-            content[0], stream=True
-        )
+        workflow_response = self.workflow.run(content[0], stream=True)
         for event in workflow_response:
             if (
-                event.event and 
-                event.event != "WorkflowStarted" and 
-                event.event != "StepOutputWorkflowCompleted" and
-                event.event != "WorkflowCompleted" and
-                event.event != "StepStarted" and
-                event.event != "StepCompleted" and 
-                event.event != "StepOutput"
-                ):  # type: ignore
+                event.event
+                and event.event != "WorkflowStarted"
+                and event.event != "StepOutputWorkflowCompleted"
+                and event.event != "WorkflowCompleted"
+                and event.event != "StepStarted"
+                and event.event != "StepCompleted"
+                and event.event != "StepOutput"
+            ):  # type: ignore
                 print(f"{event.event}", end="", flush=True)  # type: ignore
         print("\n")
-    
+
         return CLIOutput(stdout=None, stderr=None, exitcode=0)

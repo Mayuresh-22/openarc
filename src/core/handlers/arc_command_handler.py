@@ -158,7 +158,7 @@ class ArcCommandHandler(BaseHandler):
                 )
 
         return CLIOutput(stdout=result, stderr=None, exitcode=0)
-    
+
     def bye_command(self):
         print("Exiting OpenArc. Goodbye!")
         exit(0)

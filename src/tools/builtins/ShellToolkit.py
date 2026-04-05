@@ -6,9 +6,7 @@ from src.tools.registry import ToolRegistry
 
 class ShellToolkit(ShellTools):
     def __init__(self):
-        super().__init__(
-            base_dir=CWD_PATH
-        )
+        super().__init__(base_dir=CWD_PATH)
 
 
 ToolRegistry().register_toolkit(ShellToolkit())
