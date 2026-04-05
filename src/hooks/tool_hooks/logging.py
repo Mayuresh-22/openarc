@@ -1,13 +1,13 @@
-from typing import Callable
-from prompt_toolkit import HTML, print_formatted_text
 
-from src.utils.print_style import cli_style
+from typing import Callable
+from src.utils.print_style import print_with_frame, CLI_COLORS
 
 
 def logging_hook(function_name: str, func: Callable, args: dict):
     """Log the tool name and arguments before execution."""
-    print_formatted_text(
-        HTML(f"\n\n<system>Calling {function_name} with args: {list(args.keys())}</system>"),
-        style=cli_style
+    print_with_frame(
+        f"Calling {function_name} with args: {list(args.keys())}",
+        color=CLI_COLORS["system"],
+        style="system"
     )
     return func(**args)
