@@ -16,12 +16,12 @@ class PlannerAgent:
         if cls._instance is None:
             cls._instance = super(PlannerAgent, cls).__new__(cls)
         return cls._instance
-    
+
     def __init__(
-            self, 
-            agent_config_service = AgentConfigService(config_service=ConfigService()),
-            tool_registry = ToolRegistry()
-        ):
+        self,
+        agent_config_service=AgentConfigService(config_service=ConfigService()),
+        tool_registry=ToolRegistry(),
+    ):
         self.agent_config_service = agent_config_service
         self.tool_registry = tool_registry
         self.session_id = build_session_id()
@@ -36,32 +36,19 @@ class PlannerAgent:
             instructions=[
                 "You are OpenArc's Planner Agent.",
                 "Your role is to transform a natural-language developer request into a logical, execution-ready step-by-step plan.",
-                f"Available toolkits:\n{self.tool_registry.get_all_toolkits()}",
-                f"Environment information:\n{build_environment_prompt()}",
-                "You must analyze the available toolkits before creating the plan.",
-                "You must only reference toolkit names exactly as listed above.",
-                "Do not hallucinate, rename, or invent toolkit names.",
-                "If a step does not need any toolkit, use an empty tools_required list.",
-                "Break the task into the smallest logical steps needed to complete it.",
-                "Order the steps so that dependencies are respected.",
-                "Each step must contain:",
-                "1. step_name: a descriptive name (displayed in CLI, Step 1: <step_name>, etc)",
-                "2. step_description: a brief actionable description",
-                "3. tools_required: exact toolkit names from the available toolkit list only",
-                "4. expected_output: the concrete outcome expected from the step",
-                "Choose the minimum real toolkit set required for each step.",
-                "Do not assign tools casually or speculatively.",
-                "If the request cannot be completed using the available toolkits, reflect that clearly in the plan instead of inventing capabilities.",
-                "Your output must be concise, logical, dependency-aware, and directly usable by the Executor Agent."
+                f"Available toolkits (use exact names only):\n{self.tool_registry.get_all_toolkits()}",
+                f"Environment:\n{build_environment_prompt()}",
+                "Each step must contain: step_name, step_description, tools_required (exact toolkit names or empty list), expected_output.",
+                "Order steps by dependency. Use minimum toolkits per step. If the request can't be fulfilled, state why.",
             ],
             db=SqliteDb(ALL_AGENT_MEMORY_PATHS.PLANNER_AGENT),
             output_schema=PlannerAgentOutputSchema,
-            add_history_to_context=True,
+            # add_history_to_context=True,
             markdown=True,
-            tool_call_limit=10,
-            telemetry=False
+            telemetry=False,
         )
 
         return self.planner_agent
+
 
 planner_agent = PlannerAgent()
