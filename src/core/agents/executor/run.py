@@ -1,24 +1,26 @@
 """
-This is the Executor agent runner. 
+This is the Executor agent runner.
 
 what it does?
-This runner runs the agent directly as custom function step in the agno workflow, 
+This runner runs the agent directly as custom function step in the agno workflow,
 handling HITL loop in the function step itself.
-It supports both `requires_confirmation` and `dynamic user input` 
-interactions for tool execution. 
-The agent will pause and wait for user input when either of these conditions are met 
+It supports both `requires_confirmation` and `dynamic user input`
+interactions for tool execution.
+The agent will pause and wait for user input when either of these conditions are met
 before proceeding with the execution of the tool.
 
 Why?
-Note: This is the workaround as agent tool level HITL is NOT propagated to the workflow in agno. 
+Note: This is the workaround as agent tool level HITL is NOT propagated to the workflow in agno.
 This implementation ensures workflow execution is paused until the agent receives the necessary user input.
 """
+
+
 from agno.workflow import StepInput, StepOutput
-from prompt_toolkit import HTML, print_formatted_text, prompt
-from pydantic import ValidationError
 import regex
 from src.core.agents.executor.agent import executor_agent
-from src.utils.print_style import cli_style
+from src.utils.print_style import (
+    print_with_frame, print_stream_chunk, CLI_COLORS, console
+)
 from src.types.agents import ExecutorAgentOutputSchema
 
 
@@ -27,10 +29,9 @@ def run_executor_agent(step_input: StepInput) -> StepOutput:
     run_response = executor_agent.get_agent().run(executor_input, stream=True)
     fin_content = ""
 
-    print_formatted_text(
-        HTML("<header>\n===== Executor Agent Output: =====</header>"),
-        style=cli_style
-    )
+    print()  # Add spacing before agent output
+    print_with_frame("█████ Executor Agent █████", color=CLI_COLORS["header"], style="header")
+
     while True:
         paused = False
         for run_event in run_response:
@@ -38,38 +39,19 @@ def run_executor_agent(step_input: StepInput) -> StepOutput:
                 paused = True
                 for requirement in run_event.active_requirements:  # type: ignore
                     if requirement.needs_user_input:
-                        print_formatted_text(
-                            HTML("<confirm>Agent needs input:</confirm>"),
-                            style=cli_style
-                        )
+                        console.print("[bold cyan]🛈 Executor Agent needs your input:[/bold cyan]")
                         for field in requirement.user_input_schema:  # type: ignore
                             if field.value is None:
-                                field.value = prompt(
-                                    HTML(f"  <confirm>{field.description or field.name}:</confirm> "),
-                                    style=cli_style
-                                )
+                                prompt_label = f"{field.description or field.name}: "
+                                field.value = console.input(f"[bold cyan]{prompt_label}[/bold cyan]")
                             else:
-                                print_formatted_text(
-                                    HTML(f"  <feedback-info>{field.name} (pre-filled): {field.value}</feedback-info>"),
-                                    style=cli_style
-                                )
+                                console.print(f"[bold cyan]{field.name} (pre-filled):[/bold cyan] [white]{field.value}[/white]")
 
                     elif requirement.needs_confirmation:
                         tool_exec = requirement.tool_execution  # type: ignore
-                        print_formatted_text(
-                            HTML(
-                                f"<confirm>Confirm tool '{tool_exec.tool_name}' usage:</confirm> "  # type: ignore
-                            ),
-                            style=cli_style
-                        )
-                        print_formatted_text(
-                            HTML(f"  <confirm>Args: {tool_exec.tool_args}</confirm>"),  # type: ignore
-                            style=cli_style
-                        )
-                        answer = prompt(
-                            HTML("  <confirm>Confirm? [y/N]:</confirm> "),
-                            style=cli_style
-                        ).strip().lower()
+                        console.print(f"[bold cyan]🔷 Confirm tool '[white]{tool_exec.tool_name}[/white]' usage?[/bold cyan]")  # type: ignore
+                        console.print(f"[grey50]Args:[/grey50] [bold cyan]{tool_exec.tool_args}[/bold cyan]")  # type: ignore
+                        answer = console.input("[bold cyan]Confirm? [y/N]: [/bold cyan]").strip().lower()
                         if answer == "y":
                             requirement.confirm()
                         else:
@@ -89,11 +71,9 @@ def run_executor_agent(step_input: StepInput) -> StepOutput:
                 else:
                     fin_content += str(run_event.content) or ""
                     event_content = str(run_event.content) or ""
-
                 print_executor_agent_output(event_content)
         if not paused:
             break
-
     return StepOutput(content=fin_content)
 
 
@@ -102,12 +82,19 @@ def build_executor_agent_input(step_input: StepInput):
     return f"Task and generated plan: {step_input.get_input_as_string()}"
 
 
-def print_executor_agent_output(event_content: str | ExecutorAgentOutputSchema):
+def print_executor_agent_output(
+    event_content: str | ExecutorAgentOutputSchema,
+):
     # remove trailing newlines for cleaner CLI output
-    valid_output = regex.sub(r"\n+$", "", event_content) if isinstance(event_content, str) else event_content
+    # valid_output = (
+    #     regex.sub(r"\n+$", "", event_content)
+    #     if isinstance(event_content, str)
+    #     else event_content
+    # )
+    valid_output = event_content
     if isinstance(event_content, str):
-        print_formatted_text(
-            HTML(f"<grey>{valid_output}</grey>"),
-            style=cli_style,
-            end=""
-        )
+        # print_formatted_text(
+        #     HTML(f"<output>{valid_output}</output>"), style=cli_style, end=""
+        # )
+        print_stream_chunk(str(valid_output))
+
